@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+:root {
+  @apply font-sans leading-normal font-normal antialiased;
+}
+
+body {
+  @apply text-white bg-slate-900 m-0 flex min-w-[320px] min-h-screen;
+}
