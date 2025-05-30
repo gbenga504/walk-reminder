@@ -41,7 +41,7 @@ const Popup: React.FC = () => {
 
   const renderFooter = () => {
     return (
-      <footer className="p-3 text-white text-center text-sm font-bold">
+      <footer className="p-3 text-center text-sm font-bold">
         <p>{nextReminderTime}</p>
       </footer>
     );

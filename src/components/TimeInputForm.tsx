@@ -14,7 +14,7 @@ export const TimeInputForm: React.FC = () => {
     <form className="flex justify-between" onSubmit={handleSubmit}>
       <div className="flex items-center space-x-2">
         <TimeInput onTimeChange={(time) => console.log(time)} />
-        <ArrowRight className="text-white" size={14} />
+        <ArrowRight size={14} />
         <TimeInput onTimeChange={(time) => console.log(time)} />
       </div>
 
