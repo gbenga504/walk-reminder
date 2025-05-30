@@ -1,62 +1,48 @@
-import classNames from "classnames";
+import { useState } from "react";
+import { Switch } from "./components/Switch";
+import { TimeInputForm } from "./components/TimeInputForm";
 
 // This is the Popup UI that appears when the user clicks the extension icon in the browser toolbar.
 const Popup: React.FC = () => {
+  const [startTime, setStartTime] = useState("09:00");
+  const [endTime, setEndTime] = useState("17:00");
+  const [isReminderActive, setIsReminderActive] = useState(false);
+  const [nextReminderTime, setNextReminderTime] = useState("Not set");
+  const [message, setMessage] = useState("");
+
   const renderHeader = () => {
     return (
       <header className="p-3 justify-between items-center border-b border-gray-700">
-        <h1 className="text-lg font-bold">Form Helper</h1>
+        <h1 className="text-lg font-bold">Walk Reminder</h1>
       </header>
     );
   };
 
-  const renderSwitch = () => {
+  const renderBody = () => {
     return (
-      <label
-        htmlFor="toggle-switch"
-        className="flex items-center cursor-pointer"
-      >
-        <div className="relative">
-          <input type="checkbox" id="toggle-switch" className="sr-only" />
-          <div
-            className={classNames("block w-10 h-6 rounded-full", {
-              "bg-green-50": true,
-              "bg-gray-300": false,
-            })}
-          />
-          <div
-            className={classNames(
-              "absolute left-1 top-1 w-4 h-4 rounded-full transition",
-              {
-                "translate-x-full bg-green-900": true,
-                "bg-white": false,
-              }
-            )}
-          />
-        </div>
-      </label>
-    );
-  };
+      <section className="flex-1 p-3">
+        <section className="flex items-center justify-between gap-x-4">
+          <div>
+            <p className="text-sm">Enable walk reminders</p>
+          </div>
 
-  const renderQuickSettings = () => {
-    return (
-      <section className="p-3 flex items-center justify-between gap-x-4">
-        <div>
-          <h6 className="text-base font-bold">Quick Settings</h6>
-          <p className="text-sm mt-4">
-            Enable form helper suggestions on this page
-          </p>
-        </div>
+          <Switch />
+        </section>
 
-        {renderSwitch()}
+        <div className="mt-4">
+          <h6 className="font-bold text-sm">Work Time</h6>
+          <div className="mt-2">
+            <TimeInputForm />
+          </div>
+        </div>
       </section>
     );
   };
 
   return (
-    <main>
+    <main className="flex flex-col w-full h-full">
       {renderHeader()}
-      {renderQuickSettings()}
+      {renderBody()}
     </main>
   );
 };

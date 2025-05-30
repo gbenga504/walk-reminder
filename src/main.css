@@ -5,5 +5,9 @@
 }
 
 body {
-  @apply text-white bg-slate-900 m-0 flex min-w-[320px] min-h-screen;
+  @apply text-white bg-slate-900 m-0 flex max-w-[320px] min-h-screen;
+}
+
+#root {
+  @apply w-full h-full;
 }
