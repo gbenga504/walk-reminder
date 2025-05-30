@@ -6,9 +6,8 @@ import { TimeInputForm } from "./components/TimeInputForm";
 const Popup: React.FC = () => {
   // const [startTime, setStartTime] = useState("09:00");
   // const [endTime, setEndTime] = useState("17:00");
-  // const [isReminderActive, setIsReminderActive] = useState(false);
+  const [isReminderActive, setIsReminderActive] = useState(false);
   const [nextReminderTime] = useState("Not set");
-  // const [message, setMessage] = useState("");
 
   const renderHeader = () => {
     return (
@@ -26,7 +25,10 @@ const Popup: React.FC = () => {
             <p className="text-sm">Enable walk reminders</p>
           </div>
 
-          <Switch />
+          <Switch
+            enabled={isReminderActive}
+            onChange={() => setIsReminderActive(!isReminderActive)}
+          />
         </section>
 
         <div className="mt-4">

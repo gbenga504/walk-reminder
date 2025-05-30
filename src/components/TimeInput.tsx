@@ -1,12 +1,12 @@
 import classNames from "classnames";
 import { useEffect, useState } from "react";
 
-interface ITimeInput {
+interface ITimeInputProps {
   initialTime?: string;
   onTimeChange: (time: string) => void;
 }
 
-export const TimeInput: React.FC<ITimeInput> = ({
+export const TimeInput: React.FC<ITimeInputProps> = ({
   initialTime = "00:00",
   onTimeChange,
 }) => {
