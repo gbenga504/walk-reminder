@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import { useEffect, useState } from "react";
 
 interface ITimeInput {
@@ -11,6 +12,7 @@ export const TimeInput: React.FC<ITimeInput> = ({
 }) => {
   const [hours, setHours] = useState("");
   const [minutes, setMinutes] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
 
   useEffect(
     function parseInitialTime() {
@@ -35,6 +37,7 @@ export const TimeInput: React.FC<ITimeInput> = ({
 
   const handleHoursChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
     const value = ev.target.value;
+
     // Allow empty string or single digit for temporary input
     if (value === "" || /^\d{1,2}$/.test(value)) {
       setHours(value);
@@ -95,6 +98,7 @@ export const TimeInput: React.FC<ITimeInput> = ({
   };
 
   const handleBlur = (ev: React.FocusEvent<HTMLInputElement>) => {
+    setIsFocused(false);
     const { name, value } = ev.target;
 
     if (value === "") {
@@ -132,14 +136,23 @@ export const TimeInput: React.FC<ITimeInput> = ({
   };
 
   return (
-    <div className="flex items-center space-x-1">
+    <div
+      className={classNames(
+        "flex p-1 items-center border-2 rounded-lg transition-colors duration-200 shadow-sm",
+        {
+          "border-slate-700": !isFocused,
+          "ring-green-900 border-green-900 ring-2": isFocused,
+        }
+      )}
+    >
       <input
         type="text"
         name="hours"
         value={hours}
         onChange={handleHoursChange}
         onBlur={handleBlur}
-        className="w-10 p-0.5 text-center text-sm font-mono border-2 border-slate-700 rounded-lg focus:outline-none focus:ring-green-900 focus:border-green-900 focus:ring-2 transition-colors duration-200 shadow-sm"
+        onFocus={() => setIsFocused(true)}
+        className="w-5 text-center text-sm font-mono border-0 focus:outline-none"
         maxLength={2}
         placeholder="HH"
         aria-label="Hours"
@@ -155,7 +168,8 @@ export const TimeInput: React.FC<ITimeInput> = ({
         value={minutes}
         onChange={handleMinutesChange}
         onBlur={handleBlur}
-        className="w-10 p-0.5 text-center text-sm font-mono border-2 border-slate-700 rounded-lg focus:outline-none focus:ring-green-900 focus:border-green-900 focus:ring-2 transition-colors duration-200 shadow-sm"
+        onFocus={() => setIsFocused(true)}
+        className="w-5 text-center text-sm font-mono border-0 focus:outline-none"
         maxLength={2}
         placeholder="MM"
         aria-label="Minutes"
