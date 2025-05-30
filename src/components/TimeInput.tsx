@@ -1,30 +1,21 @@
 import classNames from "classnames";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 interface ITimeInputProps {
-  initialTime?: string;
-  onTimeChange: (time: string) => void;
+  defaultTime?: string;
+  onTimeChange?: (time: string) => void;
 }
 
 export const TimeInput: React.FC<ITimeInputProps> = ({
-  initialTime = "00:00",
+  defaultTime = "00:00",
   onTimeChange,
 }) => {
-  const [hours, setHours] = useState("");
-  const [minutes, setMinutes] = useState("");
+  const [initialHours, initialMinutes] = defaultTime.split(":");
+  const [hours, setHours] = useState(initialHours);
+  const [minutes, setMinutes] = useState(initialMinutes);
   const [isFocused, setIsFocused] = useState(false);
 
-  useEffect(
-    function parseInitialTime() {
-      const parts = initialTime.split(":");
-
-      setHours(parts[0] || "00");
-      setMinutes(parts[1] || "00");
-    },
-    [initialTime]
-  );
-
-  const convertTimeToTwoDigitFormat = (time: number): string => {
+  const convertTimeToTwoDigitFormat = (time: number | string): string => {
     return String(time).padStart(2, "0");
   };
 
@@ -32,106 +23,70 @@ export const TimeInput: React.FC<ITimeInputProps> = ({
     const formattedHours = convertTimeToTwoDigitFormat(parseInt(hour) || 0);
     const formattedMinutes = convertTimeToTwoDigitFormat(parseInt(minute) || 0);
 
-    onTimeChange(`${formattedHours}:${formattedMinutes}`);
+    onTimeChange?.(`${formattedHours}:${formattedMinutes}`);
+  };
+
+  const parseTime = (time: string, maxPossibleValue: number): string => {
+    // Also allow empty string or single digit for temporary input
+    if (time === "" || /^\d{1,2}$/.test(time)) {
+      if (time.length === 2) {
+        if (parseInt(time) > maxPossibleValue) {
+          return convertTimeToTwoDigitFormat("0");
+        }
+
+        return convertTimeToTwoDigitFormat(time);
+      }
+
+      return time;
+    }
+
+    return convertTimeToTwoDigitFormat("0");
+  };
+
+  const revalidateTime = (time: string, maxPossibleValue: number): string => {
+    if (time === "") {
+      return "00";
+    }
+
+    const num = parseInt(time);
+
+    if (isNaN(num) || num < 0 || num > maxPossibleValue) {
+      return "00";
+    }
+
+    return convertTimeToTwoDigitFormat(time);
   };
 
   const handleHoursChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
     const value = ev.target.value;
+    const parsedTime = parseTime(value, 23);
 
-    // Allow empty string or single digit for temporary input
-    if (value === "" || /^\d{1,2}$/.test(value)) {
-      setHours(value);
-
-      // If a valid two-digit number is entered, update the full time
-      if (value.length === 2 && !isNaN(parseInt(value, 10))) {
-        let num = parseInt(value, 10);
-        if (num > 23) {
-          // Default to 00 if greater than 23
-          num = 0;
-        }
-
-        setHours(convertTimeToTwoDigitFormat(num));
-        notifyTimeChange(convertTimeToTwoDigitFormat(num), minutes);
-      }
-      return;
-    }
-
-    let num = parseInt(value, 10);
-    if (isNaN(num) || num < 0 || num > 23) {
-      // If invalid, default to 00
-      num = 0;
-    }
-
-    setHours(convertTimeToTwoDigitFormat(num));
-    notifyTimeChange(convertTimeToTwoDigitFormat(num), minutes);
+    setHours(parsedTime);
+    notifyTimeChange(parsedTime, minutes);
   };
 
   const handleMinutesChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
     const value = ev.target.value;
+    const parsedTime = parseTime(value, 59);
 
-    // Allow empty string or single digit for temporary input
-    if (value === "" || /^\d{1,2}$/.test(value)) {
-      setMinutes(value);
-
-      // If a valid two-digit number is entered, update the full time
-      if (value.length === 2 && !isNaN(parseInt(value, 10))) {
-        let num = parseInt(value, 10);
-        if (num > 59) {
-          // Default to 00 if greater than 59
-          num = 0;
-        }
-
-        setMinutes(convertTimeToTwoDigitFormat(num)); // Update state with formatted value
-        notifyTimeChange(hours, convertTimeToTwoDigitFormat(num));
-      }
-      return;
-    }
-
-    let num = parseInt(value, 10);
-    if (isNaN(num) || num < 0 || num > 59) {
-      // If invalid, default to 00
-      num = 0;
-    }
-
-    setMinutes(convertTimeToTwoDigitFormat(num));
-    notifyTimeChange(hours, convertTimeToTwoDigitFormat(num));
+    setMinutes(parsedTime);
+    notifyTimeChange(hours, parsedTime);
   };
 
   const handleBlur = (ev: React.FocusEvent<HTMLInputElement>) => {
     setIsFocused(false);
     const { name, value } = ev.target;
 
-    if (value === "") {
-      if (name === "hours") {
-        setHours("00");
-        notifyTimeChange("00", minutes);
-      } else if (name === "minutes") {
-        setMinutes("00");
-        notifyTimeChange(hours, "00");
-      }
-
-      return;
-    }
-
-    // Re-validate on blur to ensure correct formatting even if user types one digit and blurs
     if (name === "hours") {
-      let num = parseInt(value, 10);
+      const revalidatedHours = revalidateTime(value, 23);
 
-      if (isNaN(num) || num < 0 || num > 23) {
-        num = 0; // Default to 00
-      }
-
-      setHours(convertTimeToTwoDigitFormat(num));
-      notifyTimeChange(convertTimeToTwoDigitFormat(num), minutes);
+      setHours(revalidatedHours);
+      notifyTimeChange(revalidatedHours, minutes);
     } else if (name === "minutes") {
-      let num = parseInt(value, 10);
+      const revalidatedMinutes = revalidateTime(value, 59);
 
-      if (isNaN(num) || num < 0 || num > 59) {
-        num = 0; // Default to 00
-      }
-
-      setMinutes(convertTimeToTwoDigitFormat(num));
-      notifyTimeChange(hours, convertTimeToTwoDigitFormat(num));
+      setMinutes(revalidatedMinutes);
+      notifyTimeChange(hours, revalidatedMinutes);
     }
   };
 

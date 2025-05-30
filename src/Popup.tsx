@@ -1,11 +1,8 @@
 import { useState } from "react";
 import { Switch } from "./components/Switch";
-import { TimeInputForm } from "./components/TimeInputForm";
+import { WorkTimeForm } from "./components/WorkTimeForm";
 
-// This is the Popup UI that appears when the user clicks the extension icon in the browser toolbar.
 const Popup: React.FC = () => {
-  // const [startTime, setStartTime] = useState("09:00");
-  // const [endTime, setEndTime] = useState("17:00");
   const [isReminderActive, setIsReminderActive] = useState(false);
   const [nextReminderTime] = useState("Not set");
 
@@ -32,10 +29,7 @@ const Popup: React.FC = () => {
         </section>
 
         <div className="mt-4">
-          <h6 className="font-bold text-sm">Work Time</h6>
-          <div className="mt-2">
-            <TimeInputForm />
-          </div>
+          <WorkTimeForm />
         </div>
       </section>
     );
