@@ -5,6 +5,7 @@ import {
   ACTION_TYPES,
   APP_SETTING_KEYS,
   DEFAULT_IS_REMINDER_ACTIVE,
+  getActualDates,
   REMIND_USER_AFTER,
 } from "./utils";
 
@@ -38,46 +39,27 @@ const Popup: React.FC = () => {
     endTime: string
   ): string | null => {
     const now = new Date();
-    const [startHour, startMinute] = startTime.split(":").map(Number);
-    const [endHour, endMinute] = endTime.split(":").map(Number);
-
-    const nextReminder = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      startHour,
-      startMinute,
-      0
-    );
+    const { startDate, endDate } = getActualDates(startTime, endTime);
 
     // If current time is before start time, next reminder is at start time
-    if (now.getTime() < nextReminder.getTime()) {
-      return nextReminder.toLocaleTimeString("en", {
+    if (now.getTime() < startDate.getTime()) {
+      return startDate.toLocaleTimeString("en", {
         hour: "2-digit",
         minute: "2-digit",
       });
     }
 
     // Find the next hourly interval within the work hours
-    while (nextReminder.getTime() <= now.getTime()) {
-      nextReminder.setHours(nextReminder.getHours() + REMIND_USER_AFTER);
+    while (startDate.getTime() <= now.getTime()) {
+      startDate.setHours(startDate.getHours() + REMIND_USER_AFTER);
     }
 
-    // Check if the calculated next reminder is within the end time
-    const workEndTime = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      endHour,
-      endMinute,
-      0
-    );
-
-    if (nextReminder.getTime() > workEndTime.getTime()) {
+    // If the next reminder is after the end time, return null. No more reminders today
+    if (startDate.getTime() > endDate.getTime()) {
       return null;
     }
 
-    return nextReminder.toLocaleTimeString("en", {
+    return startDate.toLocaleTimeString("en", {
       hour: "2-digit",
       minute: "2-digit",
     });
