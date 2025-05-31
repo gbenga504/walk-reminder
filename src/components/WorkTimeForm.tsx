@@ -1,12 +1,13 @@
 import { ArrowRight } from "react-bootstrap-icons";
 import { TimeInput } from "./TimeInput";
 import classNames from "classnames";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ACTION_TYPES,
   APP_SETTING_KEYS,
   DEFAULT_END_TIME,
   DEFAULT_START_TIME,
+  retrieveAppSettings,
 } from "../utils";
 
 interface IWorkTimeFormProps {
@@ -17,6 +18,15 @@ export const WorkTimeForm: React.FC<IWorkTimeFormProps> = ({ onSuccess }) => {
   const [startTime, setStartTime] = useState(DEFAULT_START_TIME);
   const [endTime, setEndTime] = useState(DEFAULT_END_TIME);
   const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    (async function () {
+      const result = await retrieveAppSettings();
+
+      setStartTime(result.startTime);
+      setEndTime(result.endTime);
+    })();
+  }, []);
 
   const handleSubmit = (ev: React.FormEvent<HTMLFormElement>) => {
     ev.preventDefault();
@@ -46,14 +56,11 @@ export const WorkTimeForm: React.FC<IWorkTimeFormProps> = ({ onSuccess }) => {
       <div className="flex justify-between mt-2">
         <div className="flex items-center space-x-2">
           <TimeInput
-            defaultTime={startTime}
+            time={startTime}
             onTimeChange={(time) => setStartTime(time)}
           />
           <ArrowRight size={14} />
-          <TimeInput
-            defaultTime={endTime}
-            onTimeChange={(time) => setEndTime(time)}
-          />
+          <TimeInput time={endTime} onTimeChange={(time) => setEndTime(time)} />
         </div>
 
         <button

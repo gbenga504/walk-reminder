@@ -7,6 +7,7 @@ import {
   DEFAULT_IS_REMINDER_ACTIVE,
   getActualDates,
   REMIND_USER_AFTER,
+  retrieveAppSettings,
 } from "./utils";
 
 const Popup: React.FC = () => {
@@ -16,22 +17,18 @@ const Popup: React.FC = () => {
   const [nextReminderTime, setNextReminderTime] = useState("Not set");
 
   useEffect(function getNextReminderOnLoad() {
-    if (typeof chrome !== "undefined" && chrome.storage) {
-      const { startTime, endTime, isReminderActive } = APP_SETTING_KEYS;
+    (async function () {
+      if (typeof chrome !== "undefined" && chrome.storage) {
+        const result = await retrieveAppSettings();
+        console.log("Walk Reminder settings loaded in popup:", result);
 
-      chrome.storage.sync.get(
-        [startTime, endTime, isReminderActive],
-        (result) => {
-          if (typeof result[startTime] !== "undefined") {
-            setIsReminderActive(!!result[isReminderActive]);
-          }
+        setIsReminderActive(result.isReminderActive);
 
-          if (result[isReminderActive]) {
-            getNextReminderForDisplay(result[startTime], result[endTime]);
-          }
+        if (result.isReminderActive) {
+          getNextReminderForDisplay(result.startTime, result.endTime);
         }
-      );
-    }
+      }
+    })();
   }, []);
 
   const computeNextReminder = (

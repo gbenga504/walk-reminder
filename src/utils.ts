@@ -87,3 +87,22 @@ export const getActualDates = (
     endDate: correctedEndDate,
   };
 };
+
+export const retrieveAppSettings = async (): Promise<AppSettings> => {
+  const { startTime, endTime, isReminderActive } = APP_SETTING_KEYS;
+
+  return new Promise((resolve) => {
+    chrome.storage.sync.get<AppSettings>(
+      [startTime, endTime, isReminderActive],
+      (result) => {
+        const {
+          startTime = DEFAULT_START_TIME,
+          endTime = DEFAULT_END_TIME,
+          isReminderActive = DEFAULT_IS_REMINDER_ACTIVE,
+        } = result;
+
+        resolve({ startTime, endTime, isReminderActive });
+      }
+    );
+  });
+};

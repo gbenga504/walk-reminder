@@ -1,32 +1,10 @@
 import {
   ACTION_TYPES,
-  APP_SETTING_KEYS,
-  DEFAULT_END_TIME,
-  DEFAULT_IS_REMINDER_ACTIVE,
-  DEFAULT_START_TIME,
   getActualDates,
   REMIND_USER_AFTER,
+  retrieveAppSettings,
   type AppSettings,
 } from "./utils";
-
-const retrieveAppSettings = async (): Promise<AppSettings> => {
-  const { startTime, endTime, isReminderActive } = APP_SETTING_KEYS;
-
-  return new Promise((resolve) => {
-    chrome.storage.sync.get<AppSettings>(
-      [startTime, endTime, isReminderActive],
-      (result) => {
-        const {
-          startTime = DEFAULT_START_TIME,
-          endTime = DEFAULT_END_TIME,
-          isReminderActive = DEFAULT_IS_REMINDER_ACTIVE,
-        } = result;
-
-        resolve({ startTime, endTime, isReminderActive });
-      }
-    );
-  });
-};
 
 const calculateDelayUntilFirstReminderInMinutes = (
   startTime: AppSettings["startTime"],

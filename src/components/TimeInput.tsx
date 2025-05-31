@@ -2,28 +2,19 @@ import classNames from "classnames";
 import { useState } from "react";
 
 interface ITimeInputProps {
-  defaultTime?: string;
-  onTimeChange?: (time: string) => void;
+  time: string;
+  onTimeChange: (time: string) => void;
 }
 
 export const TimeInput: React.FC<ITimeInputProps> = ({
-  defaultTime = "00:00",
+  time,
   onTimeChange,
 }) => {
-  const [initialHours, initialMinutes] = defaultTime.split(":");
-  const [hours, setHours] = useState(initialHours);
-  const [minutes, setMinutes] = useState(initialMinutes);
   const [isFocused, setIsFocused] = useState(false);
+  const [hours, minutes] = time.split(":");
 
   const convertTimeToTwoDigitFormat = (time: number | string): string => {
     return String(time).padStart(2, "0");
-  };
-
-  const notifyTimeChange = (hour: string, minute: string) => {
-    const formattedHours = convertTimeToTwoDigitFormat(parseInt(hour) || 0);
-    const formattedMinutes = convertTimeToTwoDigitFormat(parseInt(minute) || 0);
-
-    onTimeChange?.(`${formattedHours}:${formattedMinutes}`);
   };
 
   const parseTime = (time: string, maxPossibleValue: number): string => {
@@ -61,16 +52,14 @@ export const TimeInput: React.FC<ITimeInputProps> = ({
     const value = ev.target.value;
     const parsedTime = parseTime(value, 23);
 
-    setHours(parsedTime);
-    notifyTimeChange(parsedTime, minutes);
+    onTimeChange(`${parsedTime}:${minutes}`);
   };
 
   const handleMinutesChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
     const value = ev.target.value;
     const parsedTime = parseTime(value, 59);
 
-    setMinutes(parsedTime);
-    notifyTimeChange(hours, parsedTime);
+    onTimeChange(`${hours}:${parsedTime}`);
   };
 
   const handleBlur = (ev: React.FocusEvent<HTMLInputElement>) => {
@@ -80,13 +69,11 @@ export const TimeInput: React.FC<ITimeInputProps> = ({
     if (name === "hours") {
       const revalidatedHours = revalidateTime(value, 23);
 
-      setHours(revalidatedHours);
-      notifyTimeChange(revalidatedHours, minutes);
+      onTimeChange(`${revalidatedHours}:${minutes}`);
     } else if (name === "minutes") {
       const revalidatedMinutes = revalidateTime(value, 59);
 
-      setMinutes(revalidatedMinutes);
-      notifyTimeChange(hours, revalidatedMinutes);
+      onTimeChange(`${hours}:${revalidatedMinutes}`);
     }
   };
 
