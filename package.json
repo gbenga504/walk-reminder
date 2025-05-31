@@ -5,13 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && rm -rf dist && vite build -c vite.config.ts && vite build -c vite.config.lib.ts",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.8",
     "@types/chrome": "^0.0.323",
+    "@types/node": "^22.15.29",
     "classnames": "^2.5.1",
     "react": "^19.1.0",
     "react-bootstrap-icons": "^1.11.6",
