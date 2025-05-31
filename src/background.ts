@@ -112,6 +112,10 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
       now.getTime() >= startDate.getTime() &&
       now.getTime() <= endDate.getTime()
     ) {
+      console.log(
+        "Walk Reminder: Alarm fired, sending notification to user..."
+      );
+
       chrome.notifications.create(ACTION_TYPES.nudgeUserToTakeBreak, {
         type: "basic",
         iconUrl: "icon128.png",
@@ -120,6 +124,9 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         priority: 2,
       });
     } else {
+      console.log(
+        "Walk Reminder: Alarm fired outside work hours, rescheduling..."
+      );
       // If outside work hours, clear the current alarm and reschedule for next day's start
       // This ensures the alarm doesn't keep firing overnight if the user forgets to disable
       updateAlarms({ startTime, endTime, isReminderActive });
@@ -131,21 +138,27 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 chrome.runtime.onMessage.addListener(async (request) => {
   if (request.action === ACTION_TYPES.settingsSaved) {
     const settings = await retrieveAppSettings();
+    console.log("Walk Reminder: Settings saved, updating alarms...", settings);
 
     updateAlarms(settings);
+    console.log("Walk Reminder: Alarms updated successfully.");
   }
 });
 
 // Re-evaluate alarms when the extension is installed or the browser starts
 chrome.runtime.onInstalled.addListener(async () => {
   const result = await retrieveAppSettings();
+  console.log("Walk Reminder: Extension installed, updating alarms...");
 
   updateAlarms(result);
+  console.log("Walk Reminder: Alarms updated successfully.");
 });
 
 // When chrome is started, re-evaluate the alarms
 chrome.runtime.onStartup.addListener(async () => {
   const result = await retrieveAppSettings();
+  console.log("Walk Reminder: Startup event triggered, updating alarms...");
 
   updateAlarms(result);
+  console.log("Walk Reminder: Alarms updated successfully.");
 });
