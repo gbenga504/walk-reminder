@@ -15,6 +15,7 @@ const Popup: React.FC = () => {
     DEFAULT_IS_REMINDER_ACTIVE
   );
   const [nextReminderTime, setNextReminderTime] = useState("Not set");
+  const [isReminderPlaying, setIsReminderPlaying] = useState(false);
 
   useEffect(function getNextReminderOnLoad() {
     (async function () {
@@ -29,6 +30,27 @@ const Popup: React.FC = () => {
         }
       }
     })();
+  }, []);
+
+  useEffect(function listenToReminderStateChange() {
+    if (typeof chrome !== "undefined" && chrome.runtime) {
+      const messageListener = (request: {
+        action: keyof typeof ACTION_TYPES;
+      }) => {
+        if (
+          request.action === ACTION_TYPES.reminderStarted ||
+          request.action === ACTION_TYPES.reminderStopped
+        ) {
+          setIsReminderPlaying(request.action === ACTION_TYPES.reminderStarted);
+        }
+      };
+
+      chrome.runtime.onMessage.addListener(messageListener);
+
+      return () => {
+        chrome.runtime.onMessage.removeListener(messageListener);
+      };
+    }
   }, []);
 
   const computeNextReminder = (
@@ -94,6 +116,14 @@ const Popup: React.FC = () => {
     );
   };
 
+  const handleStopReminder = () => {
+    if (typeof chrome !== "undefined" && chrome.runtime) {
+      chrome.runtime.sendMessage({ action: ACTION_TYPES.stopReminder });
+
+      setIsReminderPlaying(false);
+    }
+  };
+
   const renderHeader = () => {
     return (
       <header className="p-3 justify-between items-center border-b border-gray-700">
@@ -123,7 +153,16 @@ const Popup: React.FC = () => {
   const renderFooter = () => {
     return (
       <footer className="p-3 text-center text-sm font-bold">
-        <p>{nextReminderTime}</p>
+        {isReminderPlaying ? (
+          <button
+            className="bg-red-800 hover:bg-red-900 w-full py-2 rounded-md text-sm font-medium cursor-pointer"
+            onClick={handleStopReminder}
+          >
+            Stop Reminder
+          </button>
+        ) : (
+          <p>{nextReminderTime}</p>
+        )}
       </footer>
     );
   };
