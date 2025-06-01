@@ -125,18 +125,18 @@ chrome.runtime.onMessage.addListener(async (request) => {
 
 // Re-evaluate alarms when the extension is installed or the browser starts
 chrome.runtime.onInstalled.addListener(async () => {
-  const result = await retrieveAppSettings();
+  const settings = await retrieveAppSettings();
   console.log("Walk Reminder: Extension installed, updating alarms...");
 
-  updateAlarms(result);
+  updateAlarms(settings);
   console.log("Walk Reminder: Alarms updated successfully.");
 });
 
 // When chrome is started, re-evaluate the alarms
 chrome.runtime.onStartup.addListener(async () => {
-  const result = await retrieveAppSettings();
+  const settings = await retrieveAppSettings();
   console.log("Walk Reminder: Startup event triggered, updating alarms...");
 
-  updateAlarms(result);
+  updateAlarms(settings);
   console.log("Walk Reminder: Alarms updated successfully.");
 });

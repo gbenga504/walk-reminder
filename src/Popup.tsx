@@ -19,13 +19,13 @@ const Popup: React.FC = () => {
   useEffect(function getNextReminderOnLoad() {
     (async function () {
       if (typeof chrome !== "undefined" && chrome.storage) {
-        const result = await retrieveAppSettings();
-        console.log("Walk Reminder settings loaded in popup:", result);
+        const settings = await retrieveAppSettings();
+        console.log("Walk Reminder settings loaded in popup:", settings);
 
-        setIsReminderActive(result.isReminderActive);
+        setIsReminderActive(settings.isReminderActive);
 
-        if (result.isReminderActive) {
-          getNextReminderForDisplay(result.startTime, result.endTime);
+        if (settings.isReminderActive) {
+          getNextReminderForDisplay(settings.startTime, settings.endTime);
         }
       }
     })();

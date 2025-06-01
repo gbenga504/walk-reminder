@@ -21,10 +21,10 @@ export const WorkTimeForm: React.FC<IWorkTimeFormProps> = ({ onSuccess }) => {
 
   useEffect(() => {
     (async function () {
-      const result = await retrieveAppSettings();
+      const settings = await retrieveAppSettings();
 
-      setStartTime(result.startTime);
-      setEndTime(result.endTime);
+      setStartTime(settings.startTime);
+      setEndTime(settings.endTime);
     })();
   }, []);
 
