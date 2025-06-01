@@ -3,7 +3,7 @@
   "name": "Walk Reminder",
   "version": "1.0",
   "description": "Reminds you to take a 20-minute walk every hour during your work time.",
-  "permissions": ["alarms", "notifications", "storage"],
+  "permissions": ["alarms", "notifications", "storage", "offscreen"],
   "host_permissions": ["https://*/*", "http://*/*"],
   "action": {
     "default_popup": "index.html"

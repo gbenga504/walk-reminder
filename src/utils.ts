@@ -1,16 +1,28 @@
 export const ACTION_TYPES = {
   settingsSaved: "settingsSaved",
+
   scheduleReminder: "scheduleReminder",
   stopReminder: "stopReminder",
-  nudgeUserToTakeBreak: "nudgeUserToTakeBreak",
-
-  reminderStarted: "reminderStarted",
-  reminderStopped: "reminderStopped",
+  startReminder: "startReminder",
+  retrieveReminderState: "retrieveReminderState",
 } as const;
 
-export const NOTIFICATION_TYPES = {
-  nudgeUserToTakeBreak: "nudgeUserToTakeBreak",
+export type ActionType = keyof typeof ACTION_TYPES;
+
+export const ACTION_INITIATORS = {
+  popup: "popup",
+  offscreen: "offscreen",
+  background: "background",
 } as const;
+
+export type ActionInitiator = keyof typeof ACTION_INITIATORS;
+
+export const REMINDER_STATE = {
+  active: "active",
+  notActive: "notActive",
+} as const;
+
+export type ReminderState = keyof typeof REMINDER_STATE;
 
 export interface AppSettings {
   startTime: string;
@@ -24,6 +36,10 @@ export const APP_SETTING_KEYS: Record<AppSettingKey, AppSettingKey> = {
   startTime: "startTime",
   endTime: "endTime",
   isReminderActive: "isReminderActive",
+} as const;
+
+export const NOTIFICATION_TYPES = {
+  nudgeUserToTakeBreak: "nudgeUserToTakeBreak",
 } as const;
 
 export const DEFAULT_START_TIME = "09:00";
@@ -113,4 +129,49 @@ export const retrieveAppSettings = async (): Promise<AppSettings> => {
       }
     );
   });
+};
+
+export const calculateDelayUntilFirstReminderInMinutes = (
+  startTime: AppSettings["startTime"],
+  endTime: AppSettings["endTime"]
+): number => {
+  const { startDate, endDate } = getActualDates(startTime, endTime);
+  const now = new Date();
+
+  // If current time is before work start time, return minutes until start
+  // e.g It is currently 9AM and the user begins work at 10 AM. We should return 60 minutes
+  // i.e the next reminder is at 10:00 AM (Work start time)
+  if (now.getTime() < startDate.getTime()) {
+    return Math.max(
+      1,
+      Math.ceil((startDate.getTime() - now.getTime()) / (1000 * 60))
+    );
+  }
+
+  // If current time is within work hours, return minutes until next reminder
+  // e.g It is currently 10:30 AM and the user begins/began work at 9 AM. If we have a REMIND_USER_AFTER of 1 hour
+  // we should return 30 minutes i.e the next reminder is at 11:00 AM
+  if (
+    now.getTime() >= startDate.getTime() &&
+    now.getTime() < endDate.getTime()
+  ) {
+    while (startDate.getTime() <= now.getTime()) {
+      startDate.setHours(startDate.getHours() + REMIND_USER_AFTER);
+    }
+
+    return Math.max(
+      1,
+      Math.ceil((startDate.getTime() - now.getTime()) / (1000 * 60))
+    );
+  }
+
+  // If current time is past work end time, schedule for next day's start
+  // e.g It is currently 6 PM and the user ends work at 5 PM. We should return the number of minutes until the next work day starts
+  const tomorrowStartDate = new Date(startDate);
+  tomorrowStartDate.setDate(tomorrowStartDate.getDate() + 1);
+
+  return Math.max(
+    1,
+    Math.ceil((tomorrowStartDate.getTime() - now.getTime()) / (1000 * 60))
+  );
 };

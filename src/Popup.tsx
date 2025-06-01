@@ -7,7 +7,9 @@ import {
   DEFAULT_IS_REMINDER_ACTIVE,
   getActualDates,
   REMIND_USER_AFTER,
+  REMINDER_STATE,
   retrieveAppSettings,
+  type ActionType,
 } from "./utils";
 
 const Popup: React.FC = () => {
@@ -17,11 +19,10 @@ const Popup: React.FC = () => {
   const [nextReminderTime, setNextReminderTime] = useState("Not set");
   const [isReminderPlaying, setIsReminderPlaying] = useState(false);
 
-  useEffect(function getNextReminderOnLoad() {
+  useEffect(function getNextReminder() {
     (async function () {
       if (typeof chrome !== "undefined" && chrome.storage) {
         const settings = await retrieveAppSettings();
-        console.log("Walk Reminder settings loaded in popup:", settings);
 
         setIsReminderActive(settings.isReminderActive);
 
@@ -32,16 +33,11 @@ const Popup: React.FC = () => {
     })();
   }, []);
 
-  useEffect(function listenToReminderStateChange() {
+  useEffect(function listenToReminderActions() {
     if (typeof chrome !== "undefined" && chrome.runtime) {
-      const messageListener = (request: {
-        action: keyof typeof ACTION_TYPES;
-      }) => {
-        if (
-          request.action === ACTION_TYPES.reminderStarted ||
-          request.action === ACTION_TYPES.reminderStopped
-        ) {
-          setIsReminderPlaying(request.action === ACTION_TYPES.reminderStarted);
+      const messageListener = (request: { action: ActionType }) => {
+        if (request.action === ACTION_TYPES.startReminder) {
+          setIsReminderPlaying(true);
         }
       };
 
@@ -51,6 +47,16 @@ const Popup: React.FC = () => {
         chrome.runtime.onMessage.removeListener(messageListener);
       };
     }
+  }, []);
+
+  useEffect(function retrieveReminderState() {
+    (async function () {
+      const reminderState = await chrome.runtime.sendMessage({
+        action: ACTION_TYPES.retrieveReminderState,
+      });
+
+      setIsReminderPlaying(reminderState === REMINDER_STATE.active);
+    })();
   }, []);
 
   const computeNextReminder = (

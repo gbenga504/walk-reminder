@@ -1,55 +1,76 @@
 import {
+  ACTION_INITIATORS,
   ACTION_TYPES,
+  calculateDelayUntilFirstReminderInMinutes,
   getActualDates,
   NOTIFICATION_TYPES,
   REMIND_USER_AFTER,
+  REMINDER_STATE,
   retrieveAppSettings,
   type AppSettings,
+  type ReminderState,
 } from "./utils";
 
-const calculateDelayUntilFirstReminderInMinutes = (
-  startTime: AppSettings["startTime"],
-  endTime: AppSettings["endTime"]
-): number => {
-  const { startDate, endDate } = getActualDates(startTime, endTime);
-  const now = new Date();
+const createOffscreenDocument = async () => {
+  const OFFSCREEN_DOCUMENT_PATH = "offscreen.html";
+  if (await chrome.offscreen.hasDocument()) return;
 
-  // If current time is before work start time, return minutes until start
-  // e.g It is currently 9AM and the user begins work at 10 AM. We should return 60 minutes
-  // i.e the next reminder is at 10:00 AM (Work start time)
-  if (now.getTime() < startDate.getTime()) {
-    return Math.max(
-      1,
-      Math.ceil((startDate.getTime() - now.getTime()) / (1000 * 60))
-    );
+  await chrome.offscreen.createDocument({
+    url: OFFSCREEN_DOCUMENT_PATH,
+    reasons: ["AUDIO_PLAYBACK"],
+    justification: "Plays reminder sounds for walk notifications.",
+  });
+};
+
+let CURRENT_REMINDER_STATE: ReminderState = REMINDER_STATE.notActive;
+
+const startReminder = async () => {
+  console.log("Walk Reminder: Alarm fired, sending notification to user...");
+  await createOffscreenDocument();
+
+  await chrome.notifications.create(NOTIFICATION_TYPES.nudgeUserToTakeBreak, {
+    type: "basic",
+    iconUrl: "icon128.png",
+    title: "Time for a Walk!",
+    message: `It's been ${REMIND_USER_AFTER} hour. Go for a 20-minute walk to stretch your legs and clear your mind!`,
+    priority: 2,
+  });
+
+  changeExtensionBadge("active");
+  chrome.runtime.sendMessage({
+    action: ACTION_TYPES.startReminder,
+    initiator: ACTION_INITIATORS.offscreen,
+  });
+
+  CURRENT_REMINDER_STATE = REMINDER_STATE.active;
+};
+
+const stopReminder = async () => {
+  await createOffscreenDocument();
+
+  changeExtensionBadge("default");
+  chrome.runtime.sendMessage({
+    action: ACTION_TYPES.stopReminder,
+    initiator: ACTION_INITIATORS.offscreen,
+  });
+
+  CURRENT_REMINDER_STATE = REMINDER_STATE.notActive;
+};
+
+const changeExtensionBadge = (state: "active" | "default") => {
+  if (state === "default") {
+    return chrome.action.setBadgeText({ text: "" });
   }
 
-  // If current time is within work hours, return minutes until next reminder
-  // e.g It is currently 10:30 AM and the user begins/began work at 9 AM. If we have a REMIND_USER_AFTER of 1 hour
-  // we should return 30 minutes i.e the next reminder is at 11:00 AM
-  if (
-    now.getTime() >= startDate.getTime() &&
-    now.getTime() < endDate.getTime()
-  ) {
-    while (startDate.getTime() <= now.getTime()) {
-      startDate.setHours(startDate.getHours() + REMIND_USER_AFTER);
-    }
+  chrome.action.setBadgeText({ text: "!" });
 
-    return Math.max(
-      1,
-      Math.ceil((startDate.getTime() - now.getTime()) / (1000 * 60))
-    );
-  }
-
-  // If current time is past work end time, schedule for next day's start
-  // e.g It is currently 6 PM and the user ends work at 5 PM. We should return the number of minutes until the next work day starts
-  const tomorrowStartDate = new Date(startDate);
-  tomorrowStartDate.setDate(tomorrowStartDate.getDate() + 1);
-
-  return Math.max(
-    1,
-    Math.ceil((tomorrowStartDate.getTime() - now.getTime()) / (1000 * 60))
-  );
+  let i = 0;
+  setInterval(() => {
+    chrome.action.setBadgeBackgroundColor({
+      color: i % 2 === 0 ? "#FF0000" : "#FFA500",
+    });
+    i++;
+  }, 1000);
 };
 
 // Update or clear alarms based on user settings
@@ -60,6 +81,7 @@ async function updateAlarms({
 }: AppSettings) {
   // Clear any existing alarms first to avoid duplicates
   chrome.alarms.clear(ACTION_TYPES.scheduleReminder);
+  await stopReminder();
 
   if (!isReminderActive) {
     return;
@@ -91,17 +113,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
       now.getTime() >= startDate.getTime() &&
       now.getTime() <= endDate.getTime()
     ) {
-      console.log(
-        "Walk Reminder: Alarm fired, sending notification to user..."
-      );
-
-      chrome.notifications.create(NOTIFICATION_TYPES.nudgeUserToTakeBreak, {
-        type: "basic",
-        iconUrl: "icon128.png",
-        title: "Time for a Walk!",
-        message: `It's been ${REMIND_USER_AFTER} hour. Go for a 20-minute walk to stretch your legs and clear your mind!`,
-        priority: 2,
-      });
+      await startReminder();
     } else {
       console.log(
         "Walk Reminder: Alarm fired outside work hours, rescheduling..."
@@ -114,13 +126,31 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 });
 
 // Listen for messages when settings are saved
-chrome.runtime.onMessage.addListener(async (request) => {
+chrome.runtime.onMessage.addListener(async (request, _, sendResponse) => {
   if (request.action === ACTION_TYPES.settingsSaved) {
     const settings = await retrieveAppSettings();
     console.log("Walk Reminder: Settings saved, updating alarms...", settings);
 
     updateAlarms(settings);
     console.log("Walk Reminder: Alarms updated successfully.");
+  }
+
+  if (request.action === ACTION_TYPES.stopReminder) {
+    console.log("Walk Reminder: Stop reminder request received.");
+    await stopReminder();
+  }
+
+  if (request.action === ACTION_TYPES.retrieveReminderState) {
+    console.log("Walk Reminder: Retrieve reminder state request received.");
+
+    sendResponse(CURRENT_REMINDER_STATE);
+  }
+});
+
+// Listen for when a notification is closed by the user
+chrome.notifications.onClosed.addListener(async (notificationId, byUser) => {
+  if (notificationId === NOTIFICATION_TYPES.nudgeUserToTakeBreak && byUser) {
+    await stopReminder();
   }
 });
 
