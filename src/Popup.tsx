@@ -108,9 +108,17 @@ const Popup: React.FC = () => {
     }
   };
 
-  const handleToggleReminder = () => {
+  const handleToggleReminder = async () => {
     const reminderActive = !isReminderActive;
     setIsReminderActive(reminderActive);
+
+    if (!reminderActive) {
+      setNextReminderTime("Not set");
+    } else {
+      const { startTime, endTime } = await retrieveAppSettings();
+
+      getNextReminderForDisplay(startTime, endTime);
+    }
 
     chrome.storage.sync.set(
       { [APP_SETTING_KEYS.isReminderActive]: reminderActive },
