@@ -1,6 +1,7 @@
 import {
   ACTION_TYPES,
   getActualDates,
+  NOTIFICATION_TYPES,
   REMIND_USER_AFTER,
   retrieveAppSettings,
   type AppSettings,
@@ -94,7 +95,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         "Walk Reminder: Alarm fired, sending notification to user..."
       );
 
-      chrome.notifications.create(ACTION_TYPES.nudgeUserToTakeBreak, {
+      chrome.notifications.create(NOTIFICATION_TYPES.nudgeUserToTakeBreak, {
         type: "basic",
         iconUrl: "icon128.png",
         title: "Time for a Walk!",

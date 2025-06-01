@@ -1,6 +1,9 @@
 export const ACTION_TYPES = {
   settingsSaved: "settingsSaved",
   scheduleReminder: "scheduleReminder",
+} as const;
+
+export const NOTIFICATION_TYPES = {
   nudgeUserToTakeBreak: "nudgeUserToTakeBreak",
 } as const;
 
