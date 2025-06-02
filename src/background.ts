@@ -30,7 +30,7 @@ const startReminder = async () => {
 
   await chrome.notifications.create(NOTIFICATION_TYPES.nudgeUserToTakeBreak, {
     type: "basic",
-    iconUrl: "icon128.png",
+    iconUrl: "icon-128.png",
     title: "Time for a Walk!",
     message: `It's been ${REMIND_USER_AFTER} hour. Go for a 20-minute walk to stretch your legs and clear your mind!`,
     priority: 2,
