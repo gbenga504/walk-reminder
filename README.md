@@ -1,54 +1,60 @@
-# React + TypeScript + Vite
+# Walk Reminder Chrome Extension
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A simple yet effective Chrome extension designed for developers and desk workers to promote regular movement and well-being during long hours at the computer. This extension helps you stay active by reminding you to take a walk during your specified work schedule.
 
-Currently, two official plugins are available:
+## ✨ Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Customizable Work Hours: Easily set your daily work start and end times directly from the extension popup.
 
-## Expanding the ESLint configuration
+- Hourly Walk Reminders: Receive a notification every hour, prompting you to take a short walk.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Audible Alert: A distinct sound plays when a reminder fires, ensuring you don't miss your break.
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+- Dynamic Icon & Badge: The extension icon changes and displays an "ON" badge when a reminder is actively ringing, providing a quick visual cue.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+- "Stop Reminder" Button: A convenient button appears in the popup when a reminder is active, allowing you to stop the sound and reset the icon with a single click.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- Notification Dismissal Control: Closing the notification pop-up will automatically stop the sound and reset the extension icon, giving you control directly from the system notification.
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+- Persistence: Your settings are saved and persist across browser sessions.
+
+## 🛠️ Technologies Used
+
+- Chrome Extension API: Leveraging alarms, notifications, storage, and offscreen APIs for core functionality.
+
+- React: For building an interactive and user-friendly popup interface.
+
+- Service Worker (background.js): Handles the main logic, alarm scheduling, and communication.
+
+- Offscreen Document (offscreen.html, offscreen.js): A hidden HTML page used specifically for playing audio, as service workers do not have direct DOM access.
+
+- Vite: Used as the sole bundler for the entire project, including the React popup, offscreen document, and static assets.
+
+- Tailwind CSS: For responsive and modern styling of the popup UI.
+
+## 🚀 Installation
+
+To install and run this extension in your Chrome browser:
+
+- Clone the repository (or download the ZIP).
+
+- Install Dependencies using `npm install`
+
+- Build the Project using `npm run build`. This command uses Vite to bundle all necessary files into the dist directory.
+
+- Load into Chrome:
+
+  - Open Chrome and navigate to chrome://extensions/.
+
+  - Enable "Developer mode" using the toggle in the top right corner.
+
+  - Click "Load unpacked".
+
+  - Select the walk-reminder/dist folder
+
+The "Walk Reminder" extension icon should now appear in your browser toolbar. Click it to set your work hours and activate the reminders!
+
+## 💡 Future Enhancements
+
+- Add a "snooze" option for reminders.
+- Allow customization of reminder sound.
